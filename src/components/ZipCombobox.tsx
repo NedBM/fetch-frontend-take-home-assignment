@@ -10,15 +10,18 @@ interface ZipCodeComboboxProps {
 
 export function ZipCodeCombobox({ selectedZipCodes, onZipCodesChange }: ZipCodeComboboxProps) {
   const [inputValue, setInputValue] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
 
   const validateZip = (zip: string) => /^\d{5}$/.test(zip);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.replace(/\D/g, '').slice(0, 5);
     setInputValue(value);
+  };
 
-    if (validateZip(value) && !selectedZipCodes.includes(value)) {
-      onZipCodesChange([...selectedZipCodes, value]);
+  const handleAddZip = () => {
+    if (validateZip(inputValue) && !selectedZipCodes.includes(inputValue)) {
+      onZipCodesChange([...selectedZipCodes, inputValue]);
       setInputValue('');
     }
   };
@@ -29,13 +32,26 @@ export function ZipCodeCombobox({ selectedZipCodes, onZipCodesChange }: ZipCodeC
 
   return (
     <div className="flex flex-col gap-2 w-full max-w-[350px]">
-      <input
-        type="text"
-        value={inputValue}
-        onChange={handleInputChange}
-        placeholder="Enter ZIP code..."
-        className="w-full rounded-lg border border-input bg-transparent py-2 pl-3 pr-3 text-sm shadow-sm"
-      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="Enter ZIP code..."
+          className="w-full rounded-lg border border-input bg-transparent py-2 pl-3 pr-3 text-sm shadow-sm"
+        />
+        {(isFocused || inputValue.length > 0) && (
+          <Button 
+            onClick={handleAddZip}
+            disabled={!validateZip(inputValue) || selectedZipCodes.includes(inputValue)}
+            size="sm"
+          >
+            Add Filter
+          </Button>
+        )}
+      </div>
 
       {selectedZipCodes.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
