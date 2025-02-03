@@ -11,16 +11,22 @@ const getAgeCategory = (age: number) => {
   return { label: 'Senior', className: 'text-violet-700 bg-violet-100' };
 };
 
+const getAgeText = (age: number) => {
+    if (age === 0) return 'newborn';
+    const yearText = age === 1 ? 'year' : 'years';
+    return `${age} ${yearText}`;
+  };
+
 export const AgeBadge = ({ age }: AgeBadgeProps) => {
-  const { label, className } = getAgeCategory(age);
-  const yearText = age === 1 ? 'year' : 'years';
-  
-  return (
-    <div className="flex items-center gap-2">
-        <span className="text-sm">{age} {yearText}</span>
-      <Badge className={className}>
-        {label}
-      </Badge>
-    </div>
-  );
-};
+    const { label, className } = getAgeCategory(age);
+    const ageText = getAgeText(age);
+    
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm">{ageText}</span>
+        <Badge className={className}>
+          {label}
+        </Badge>
+      </div>
+    );
+  };

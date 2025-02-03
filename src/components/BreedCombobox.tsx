@@ -38,7 +38,7 @@ export function BreedCombobox({ breeds, selectedBreeds, onBreedsChange }: BreedC
     <div className="flex flex-col gap-2 w-full max-w-[350px]">
       <Combobox value={""} onChange={handleSelect} nullable>
         <div className="relative">
-          <div className="relative w-full cursor-default overflow-hidden rounded-lg border border-input bg-transparent text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+          <div className="relative w-full cursor-default overflow-hidden rounded-lg border border-input bg-transparent text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-2">
             <Combobox.Input
               className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:outline-none"
               onChange={(event) => setQuery(event.target.value)}

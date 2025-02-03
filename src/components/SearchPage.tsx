@@ -20,8 +20,10 @@ import {
 import { Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BreedCombobox } from './BreedCombobox';
 import { AgeBadge } from './AgeBadge';
-import { Dog } from '../../types/api';
+import { Dog, Location } from '../../types/api';
 import { AgeCombobox } from './AgeCombobox';
+import { ZipCodeCombobox } from './ZipCombobox';
+import { Badge } from './ui/badge';
 
 interface SearchResult {
   resultIds: string[];
@@ -34,15 +36,22 @@ interface FetchDogIdsParams {
     page?: number;
     breeds?: string[];
     ages?: string[];
+    zipCodes?: string[];
     sortOrder?: 'asc' | 'desc';
   }
 
 const DOGS_PER_PAGE = 12;
 
-const fetchDogIds = async ({ page = 0, breeds = [], sortOrder = 'asc' }: FetchDogIdsParams): Promise<SearchResult> => {
+const fetchDogIds = async ({ page = 0, breeds = [], ages = [], zipCodes = [], sortOrder = 'asc' }: FetchDogIdsParams): Promise<SearchResult> => {
     const searchParams = new URLSearchParams();
     if (breeds.length) {
       breeds.forEach(breed => searchParams.append('breeds', breed));
+    }
+    if (zipCodes.length) {
+      zipCodes.forEach(zip => searchParams.append('zipCodes', zip));
+    }
+    if (ages.length) {
+      zipCodes.forEach(zip => searchParams.append('ages', zip));
     }
     searchParams.append('sort', `breed:${sortOrder}`);
     searchParams.append('size', DOGS_PER_PAGE.toString());
@@ -78,6 +87,14 @@ const fetchBreeds = async (): Promise<string[]> => {
   return response.json();
 };
 
+// const fetchZipCodes = async (): Promise<string[]> => {
+//   const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/zipCodes', {
+//     credentials: 'include'
+//   });
+//   if (!response.ok) throw new Error('Failed to fetch ZIP codes');
+//   return response.json();
+// };
+
 // const fetchAges = async (): Promise<string[]> => {
 //     const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/ages', {
 //       credentials: 'include'
@@ -92,12 +109,49 @@ const ClientSearchPage = () => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
+  const [selectedZipCodes, setSelectedZipCodes] = useState<string[]>([]);
 
   // Fetch breeds for the combobox
   const { data: breeds = [] } = useQuery({
     queryKey: ['breeds'],
     queryFn: fetchBreeds,
   });
+
+  const { data: locations = [] } = useQuery<Location[]>({
+    queryKey: ['locations'],
+    queryFn: async () => {
+      const response = await fetch('https://frontend-take-home-service.fetch.com/locations', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch locations');
+      return response.json();
+    }
+  });
+
+  const calculateDistance = (zip1: string, zip2: string) => {
+    const loc1 = locations.find(l => l.zip_code === zip1);
+    const loc2 = locations.find(l => l.zip_code === zip2);
+    
+    if (!loc1 || !loc2) return Infinity;
+
+    const R = 3958.8; // Earth's radius in miles
+    const lat1 = loc1.latitude * Math.PI/180;
+    const lat2 = loc2.latitude * Math.PI/180;
+    const dLat = (loc2.latitude - loc1.latitude) * Math.PI/180;
+    const dLon = (loc2.longitude - loc1.longitude) * Math.PI/180;
+
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  const isNearby = (dogZip: string) => {
+    if (!selectedZipCodes.length) return false;
+    return selectedZipCodes.some(zip => calculateDistance(zip, dogZip) <= 50); // 50 mile radius
+  };
 
 //   const { data: ages = [] } = useQuery({
 //     queryKey: ['ages'],
@@ -111,11 +165,12 @@ const ClientSearchPage = () => {
     isFetching: isFetchingSearch,
     error: searchError,
   } = useQuery<SearchResult>({
-    queryKey: ['dogIds', page, selectedBreeds, selectedAges, sortOrder],
+    queryKey: ['dogIds', page, selectedBreeds, selectedAges, selectedZipCodes, sortOrder],
     queryFn: () => fetchDogIds({ 
       page, 
       breeds: selectedBreeds, 
       ages: selectedAges,
+      zipCodes: selectedZipCodes,
       sortOrder: sortOrder 
     }),
     placeholderData: (previousData) => previousData,
@@ -193,6 +248,11 @@ const ClientSearchPage = () => {
             selectedBreeds={selectedBreeds}
             onBreedsChange={setSelectedBreeds}
           />
+          <ZipCodeCombobox 
+  // zipCodes={zipCodes}
+  selectedZipCodes={selectedZipCodes}
+  onZipCodesChange={setSelectedZipCodes}
+/>
         <AgeCombobox 
         // ages={ages}
   selectedAges={selectedAges}
@@ -244,6 +304,14 @@ const ClientSearchPage = () => {
                     <div className="space-y-1">
                     <div className="flex items-center gap-2">
                     <AgeBadge age={dog.age} />
+                    {isNearby(dog.zip_code) && (
+                     <Badge className="bg-green-500">Nearby</Badge>
+                      )}
+                      <p className="text-sm">
+            {locations.find(l => l.zip_code === dog.zip_code)?.city}, 
+            {locations.find(l => l.zip_code === dog.zip_code)?.state} 
+            ({dog.zip_code})
+          </p>
                     </div>
                       <p className="text-sm">ZIP Code: {dog.zip_code}</p>
                     </div>
