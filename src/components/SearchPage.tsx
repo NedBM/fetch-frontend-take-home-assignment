@@ -19,7 +19,9 @@ import {
 } from "@/components/ui/card";
 import { Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BreedCombobox } from './BreedCombobox';
+import { AgeBadge } from './AgeBadge';
 import { Dog } from '../../types/api';
+import { AgeCombobox } from './AgeCombobox';
 
 interface SearchResult {
   resultIds: string[];
@@ -31,6 +33,7 @@ interface SearchResult {
 interface FetchDogIdsParams {
     page?: number;
     breeds?: string[];
+    ages?: string[];
     sortOrder?: 'asc' | 'desc';
   }
 
@@ -75,17 +78,31 @@ const fetchBreeds = async (): Promise<string[]> => {
   return response.json();
 };
 
+// const fetchAges = async (): Promise<string[]> => {
+//     const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/ages', {
+//       credentials: 'include'
+//     });
+//     if (!response.ok) throw new Error('Failed to fetch ages');
+//     return response.json();
+//   };
+
 const ClientSearchPage = () => {
   const [page, setPage] = useState(0);
   const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [selectedAges, setSelectedAges] = useState<string[]>([]);
 
   // Fetch breeds for the combobox
   const { data: breeds = [] } = useQuery({
     queryKey: ['breeds'],
     queryFn: fetchBreeds,
   });
+
+//   const { data: ages = [] } = useQuery({
+//     queryKey: ['ages'],
+//     queryFn: fetchAges,
+//   });
 
   // Fetch dog IDs with pagination
   const {
@@ -94,10 +111,11 @@ const ClientSearchPage = () => {
     isFetching: isFetchingSearch,
     error: searchError,
   } = useQuery<SearchResult>({
-    queryKey: ['dogIds', page, selectedBreeds, sortOrder],
+    queryKey: ['dogIds', page, selectedBreeds, selectedAges, sortOrder],
     queryFn: () => fetchDogIds({ 
       page, 
       breeds: selectedBreeds, 
+      ages: selectedAges,
       sortOrder: sortOrder 
     }),
     placeholderData: (previousData) => previousData,
@@ -169,13 +187,17 @@ const ClientSearchPage = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
           <BreedCombobox 
             breeds={breeds}
             selectedBreeds={selectedBreeds}
             onBreedsChange={setSelectedBreeds}
           />
-
+        <AgeCombobox 
+        // ages={ages}
+  selectedAges={selectedAges}
+  onAgesChange={setSelectedAges}
+/>
           <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Sort order" />
@@ -192,7 +214,6 @@ const ClientSearchPage = () => {
             </Button>
           )}
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
             Array(DOGS_PER_PAGE).fill(0).map((_, i) => (
@@ -221,7 +242,9 @@ const ClientSearchPage = () => {
                   />
                   <div className="mt-4 flex justify-between items-center">
                     <div className="space-y-1">
-                      <p className="text-sm">Age: {dog.age} years</p>
+                    <div className="flex items-center gap-2">
+                    <AgeBadge age={dog.age} />
+                    </div>
                       <p className="text-sm">ZIP Code: {dog.zip_code}</p>
                     </div>
                     <Button
