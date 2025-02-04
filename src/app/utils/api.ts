@@ -92,3 +92,60 @@ export const getDogs = async (ids: string[]): Promise<Dog[]> => {
 
     return response.json();
 };
+
+export const fetchLocations = async (zipCodes: string[]): Promise<Location[]> => {
+    if (!zipCodes.length) return [];
+
+    const chunkedZipCodes = zipCodes.slice(0, 100);
+
+    try {
+        const response = await fetch(`${BASE_URL}/locations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(chunkedZipCodes)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch locations');
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching locations:', error);
+        return [];
+    }
+};
+
+export const searchLocations = async (
+    zipCodes: string[],
+    city?: string,
+    states?: string[]
+): Promise<Location[]> => {
+    try {
+        const response = await fetch(`${BASE_URL}/locations/search`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                city,
+                states,
+                size: 100,
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to search locations');
+        }
+
+        const data = await response.json();
+        return data.results;
+    } catch (error) {
+        console.error('Error searching locations:', error);
+        return [];
+    }
+};
