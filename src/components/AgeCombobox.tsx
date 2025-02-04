@@ -11,10 +11,10 @@ interface AgeComboboxProps {
 }
 
 const ageCategories = [
-  { value: 'puppy', label: 'Puppy', maxAge: 1, className: 'text-rose-700 bg-rose-100' },
-  { value: 'young', label: 'Young', maxAge: 3, className: 'text-emerald-700 bg-emerald-100' },
-  { value: 'adult', label: 'Adult', maxAge: 7, className: 'text-blue-700 bg-blue-100' },
-  { value: 'senior', label: 'Senior', maxAge: Infinity, className: 'text-violet-700 bg-violet-100' },
+  { value: '0-1', label: 'Puppy (0-1)', ages: ['0', '1'], className: 'text-rose-700 bg-rose-100' },
+  { value: '2-3', label: 'Young (2-3)', ages: ['2', '3'], className: 'text-emerald-700 bg-emerald-100' },
+  { value: '4-7', label: 'Adult (4-7)', ages: ['4', '5', '6', '7'], className: 'text-blue-700 bg-blue-100' },
+  { value: '8+', label: 'Senior (8+)', ages: ['8', '9', '10', '11', '12', '13', '14', '15'], className: 'text-violet-700 bg-violet-100' }
 ];
 
 export function AgeCombobox({ selectedAges, onAgesChange }: AgeComboboxProps) {
@@ -26,26 +26,35 @@ export function AgeCombobox({ selectedAges, onAgesChange }: AgeComboboxProps) {
         category.label.toLowerCase().includes(query.toLowerCase())
       );
 
-  const handleSelect = (value: string | null) => {
-    if (!value) return;
-    if (selectedAges.includes(value)) {
-      onAgesChange(selectedAges.filter(age => age !== value));
+  const handleSelect = (value: string) => {
+    const category = ageCategories.find(cat => cat.value === value);
+    if (!category) return;
+
+    const hasAllAges = category.ages.every(age => selectedAges.includes(age));
+    if (hasAllAges) {
+      onAgesChange(selectedAges.filter(age => !category.ages.includes(age)));
     } else {
-      onAgesChange([...selectedAges, value]);
+      const newAges = [...new Set([...selectedAges, ...category.ages])];
+      onAgesChange(newAges);
     }
   };
 
-  const removeAge = (ageToRemove: string) => {
-    onAgesChange(selectedAges.filter(age => age !== ageToRemove));
+  const removeCategory = (categoryToRemove: typeof ageCategories[0]) => {
+    onAgesChange(selectedAges.filter(age => !categoryToRemove.ages.includes(age)));
   };
+
+  const getSelectedCategories = () => 
+    ageCategories.filter(category => 
+      category.ages.some(age => selectedAges.includes(age))
+    );
 
   return (
     <div className="flex flex-col gap-2 w-[200px]">
-      <Combobox value={""} onChange={handleSelect} nullable>
+      <Combobox value="" onChange={handleSelect}>
         <div className="relative">
-          <div className="relative w-full cursor-default overflow-hidden rounded-lg border border-input bg-transparent text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+          <div className="relative w-full cursor-default overflow-hidden rounded-lg border border-input bg-transparent text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-2">
             <Combobox.Input
-              className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:outline-none"
+              className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-1 focus:ring-neutral-950 rounded-md"
               onChange={(event) => setQuery(event.target.value)}
               displayValue={() => query}
               placeholder={selectedAges.length ? "Add more ages..." : "Filter by age..."}
@@ -62,24 +71,25 @@ export function AgeCombobox({ selectedAges, onAgesChange }: AgeComboboxProps) {
                 className={({ active }) =>
                   cn(
                     "relative cursor-default select-none py-2 pl-10 pr-4",
-                    active ? "bg-neutral-100 text-white" : "text-gray-900"
+                    active ? "bg-blue-600 text-white" : "text-gray-900"
                   )
                 }
               >
                 {({ active }) => (
                   <>
-                    <span className="flex items-center gap-2">
+                    <span className={cn(
+                      "block truncate",
+                      category.ages.some(age => selectedAges.includes(age)) && "font-medium"
+                    )}>
                       <Badge className={category.className}>
                         {category.label}
                       </Badge>
                     </span>
-                    {selectedAges.includes(category.value) && (
-                      <span
-                        className={cn(
-                          "absolute inset-y-0 left-0 flex items-center pl-3",
-                          active ? "text-neutral-950" : "text-neutral-950"
-                        )}
-                      >
+                    {category.ages.some(age => selectedAges.includes(age)) && (
+                      <span className={cn(
+                        "absolute inset-y-0 left-0 flex items-center pl-3",
+                        active ? "text-white" : "text-blue-600"
+                      )}>
                         <Check className="h-4 w-4" />
                       </span>
                     )}
@@ -92,25 +102,21 @@ export function AgeCombobox({ selectedAges, onAgesChange }: AgeComboboxProps) {
       </Combobox>
 
       {selectedAges.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedAges.map((ageValue) => {
-            const category = ageCategories.find(cat => cat.value === ageValue);
-            if (!category) return null;
-            return (
-              <Button
-                key={ageValue}
-                variant="secondary"
-                size="sm"
-                className="flex items-center gap-1"
-                onClick={() => removeAge(ageValue)}
-              >
-                <Badge className={category.className}>
-                  {category.label}
-                </Badge>
-                <X className="h-3 w-3" />
-              </Button>
-            );
-          })}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {getSelectedCategories().map((category) => (
+            <Button
+              key={category.value}
+              variant="secondary"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={() => removeCategory(category)}
+            >
+              <Badge className={category.className}>
+                {category.label}
+              </Badge>
+              <X className="h-3 w-3" />
+            </Button>
+          ))}
         </div>
       )}
     </div>

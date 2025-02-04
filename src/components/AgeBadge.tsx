@@ -22,11 +22,11 @@ export const AgeBadge = ({ age }: AgeBadgeProps) => {
     const ageText = getAgeText(age);
     
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm">{ageText}</span>
+      <div className="flex items-center gap-1">
         <Badge className={className}>
           {label}
         </Badge>
+        <span className="text-sm">{ageText}</span>
       </div>
     );
   };

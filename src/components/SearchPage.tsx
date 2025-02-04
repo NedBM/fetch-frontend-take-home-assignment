@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, ChevronLeft, ChevronRight, DogIcon, MapPin } from 'lucide-react';
 import { BreedCombobox } from './BreedCombobox';
 import { AgeBadge } from './AgeBadge';
 import { Dog, Location } from '../../types/api';
@@ -51,7 +51,10 @@ const fetchDogIds = async ({ page = 0, breeds = [], ages = [], zipCodes = [], so
       zipCodes.forEach(zip => searchParams.append('zipCodes', zip));
     }
     if (ages.length) {
-      zipCodes.forEach(zip => searchParams.append('ages', zip));
+      const minAge = Math.min(...ages.map(Number));
+      const maxAge = Math.max(...ages.map(Number));
+      searchParams.append('ageMin', minAge.toString());
+      searchParams.append('ageMax', maxAge.toString());
     }
     searchParams.append('sort', `breed:${sortOrder}`);
     searchParams.append('size', DOGS_PER_PAGE.toString());
@@ -96,12 +99,12 @@ const fetchBreeds = async (): Promise<string[]> => {
 // };
 
 // const fetchAges = async (): Promise<string[]> => {
-//     const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/ages', {
-//       credentials: 'include'
-//     });
-//     if (!response.ok) throw new Error('Failed to fetch ages');
-//     return response.json();
-//   };
+//   const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/ages', {
+//     credentials: 'include'
+//   });
+//   if (!response.ok) throw new Error('Failed to fetch ages');
+//   return response.json();
+// };
 
 const ClientSearchPage = () => {
   const [page, setPage] = useState(0);
@@ -296,49 +299,56 @@ const ClientSearchPage = () => {
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {isLoading ? (
-            Array(DOGS_PER_PAGE).fill(0).map((_, i) => (
-              <Card key={i} className="flex flex-col animate-pulse">
-                <CardHeader>
-                  <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="w-full h-48 bg-gray-200 rounded-md"></div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            dogs.map(dog => (
-              <Card key={dog.id} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle>{dog.name}</CardTitle>
-                  <CardDescription>{dog.breed}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <img 
-                    src={dog.img} 
-                    alt={dog.name}
-                    className="w-full h-48 object-cover rounded-md"
-                  />
-                  <div className="mt-4 flex justify-between items-center">
-                    <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                    <AgeBadge age={dog.age} />
-          {isNearby(dog.zip_code) && (
-            <Badge className="bg-green-500">Nearby</Badge>
-          )}
+        {isLoading ? (
+  Array(DOGS_PER_PAGE).fill(0).map((_, i) => (
+    <Card key={i} className="flex flex-col animate-pulse">
+      <CardHeader>
+        <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+      </CardHeader>
+      <CardContent>
+        <div className="w-full h-48 bg-gray-200 rounded-md"></div>
+      </CardContent>
+    </Card>
+  ))
+) : (
+  dogs.map(dog => (
+    <Card key={dog.id} className="flex flex-col">
+      <CardHeader className='pb-2'>
+        <CardTitle>{dog.name}</CardTitle>
+        <div className="flex items-center gap-2">
+          <DogIcon className="w-4 h-4 text-gray-500" />
+          <CardDescription>{dog.breed}</CardDescription>
         </div>
-        <div className="flex flex-col gap-1">
-  {(() => {
-    // First check if dog.zip_code exists
-    if (!dog?.zip_code) {
-      return (
-        <p className="text-sm text-gray-600">
-          Location unavailable
-        </p>
-      );
-    }
+      </CardHeader>
+      <CardContent>
+        <div className='flex justify-center'>
+          <img 
+            src={dog.img} 
+            alt={dog.name}
+            className="h-52 rounded-md"
+          />
+        </div>
+        <div className="mt-4 flex justify-between items-center">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1">
+              <AgeBadge age={dog.age} />
+              {isNearby(dog.zip_code) && (
+                <Badge className="bg-green-500">Nearby</Badge>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              {(() => {
+                if (!dog?.zip_code) {
+                  return (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4 text-gray-500" />
+                      <p className="text-sm text-gray-600">
+                        Location unavailable
+                      </p>
+                    </div>
+                  );
+                }
 
     // Then check if locations exists and find the matching location
     const location = locations?.find(l => l?.zip_code === dog.zip_code);
