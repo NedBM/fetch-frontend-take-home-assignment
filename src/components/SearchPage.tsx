@@ -193,26 +193,34 @@ const ClientSearchPage = () => {
 
 
   const { data: locations = [] } = useQuery<Location[]>({
-    queryKey: ['locations', dogs], // Add dogs as dependency
+    queryKey: ['locations', dogs],
     queryFn: async () => {
-      // Get unique zip codes from current dogs
-      const zipCodes = [...new Set(dogs.map(dog => dog.zip_code))];
-      
-      if (zipCodes.length === 0) return [];
+      try {
+        // Get unique zip codes from current dogs, filtering out any null/undefined values
+        const zipCodes = [...new Set(dogs
+          .map(dog => dog?.zip_code)
+          .filter(Boolean)
+        )];
+        
+        if (zipCodes.length === 0) return [];
   
-      const response = await fetch('https://frontend-take-home-service.fetch.com/locations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(zipCodes)
-      });
+        const response = await fetch('https://frontend-take-home-service.fetch.com/locations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(zipCodes)
+        });
   
-      if (!response.ok) throw new Error('Failed to fetch locations');
-      return response.json();
+        if (!response.ok) throw new Error('Failed to fetch locations');
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+        return [];
+      }
     },
-    enabled: dogs.length > 0 // Only run when we have dogs
+    enabled: dogs.length > 0 && dogs.some(dog => Boolean(dog?.zip_code))
   });
 
   const calculateDistance = (zip1: string, zip2: string) => {
@@ -322,19 +330,31 @@ const ClientSearchPage = () => {
           )}
         </div>
         <div className="flex flex-col gap-1">
-          {(() => {
-            const location = locations.find(l => l.zip_code === dog.zip_code);
-            return location ? (
-              <p className="text-sm text-gray-600">
-                {location.city}, {location.state} ({dog.zip_code})
-              </p>
-            ) : (
-              <p className="text-sm text-gray-600">
-                ZIP Code: {dog.zip_code}
-              </p>
-            );
-          })()}
-                    </div>
+  {(() => {
+    // First check if dog.zip_code exists
+    if (!dog?.zip_code) {
+      return (
+        <p className="text-sm text-gray-600">
+          Location unavailable
+        </p>
+      );
+    }
+
+    // Then check if locations exists and find the matching location
+    const location = locations?.find(l => l?.zip_code === dog.zip_code);
+    
+    return location ? (
+      <p className="text-sm text-gray-600">
+        {location.city}, {location.state} ({dog.zip_code})
+      </p>
+    ) : (
+      <p className="text-sm text-gray-600">
+        ZIP Code: {dog.zip_code}
+      </p>
+    );
+  })()}
+</div>
+
                       <p className="text-sm">ZIP Code: {dog.zip_code}</p>
                     </div>
                     <Button

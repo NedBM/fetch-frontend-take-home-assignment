@@ -62,7 +62,7 @@ export function AgeCombobox({ selectedAges, onAgesChange }: AgeComboboxProps) {
                 className={({ active }) =>
                   cn(
                     "relative cursor-default select-none py-2 pl-10 pr-4",
-                    active ? "bg-blue-600 text-white" : "text-gray-900"
+                    active ? "bg-neutral-100 text-white" : "text-gray-900"
                   )
                 }
               >
@@ -77,7 +77,7 @@ export function AgeCombobox({ selectedAges, onAgesChange }: AgeComboboxProps) {
                       <span
                         className={cn(
                           "absolute inset-y-0 left-0 flex items-center pl-3",
-                          active ? "text-white" : "text-blue-600"
+                          active ? "text-neutral-950" : "text-neutral-950"
                         )}
                       >
                         <Check className="h-4 w-4" />

@@ -39,8 +39,8 @@ export function ZipCodeCombobox({ selectedZipCodes, onZipCodesChange }: ZipCodeC
           onChange={handleInputChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder="Enter ZIP code..."
-          className="w-full rounded-lg border border-input bg-transparent py-2 pl-3 pr-3 text-sm shadow-sm"
+          placeholder="Filter by ZIP code..."
+          className="w-full rounded-lg border border-input bg-white py-2 pl-3 pr-3 text-sm shadow-sm"
         />
         {(isFocused || inputValue.length > 0) && (
           <Button 

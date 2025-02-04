@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { Card } from "@/components/ui/card";
+import { Dog } from 'lucide-react';
 
 function LoadingSkeleton() {
   return (
@@ -37,7 +38,10 @@ export default function SearchLayout({
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Dog Search</h1>
+          <div className="flex items-center gap-2">
+            <Dog className="w-8 h-8 text-gray-900" />
+            <h1 className="text-3xl font-bold text-gray-900">Fetch Finder</h1>
+          </div>
         </div>
       </header>
       <main>
