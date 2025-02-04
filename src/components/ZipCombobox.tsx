@@ -6,9 +6,16 @@ import { Button } from "@/components/ui/button";
 interface ZipCodeComboboxProps {
   selectedZipCodes: string[];
   onZipCodesChange: (zipCodes: string[]) => void;
+  showOnlyNearby: boolean;
+  onShowOnlyNearbyChange: (show: boolean) => void;
 }
 
-export function ZipCodeCombobox({ selectedZipCodes, onZipCodesChange }: ZipCodeComboboxProps) {
+export function ZipCodeCombobox({
+  selectedZipCodes,
+  onZipCodesChange,
+  showOnlyNearby,
+  onShowOnlyNearbyChange
+}: ZipCodeComboboxProps) {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
@@ -27,7 +34,11 @@ export function ZipCodeCombobox({ selectedZipCodes, onZipCodesChange }: ZipCodeC
   };
 
   const removeZipCode = (zipToRemove: string) => {
-    onZipCodesChange(selectedZipCodes.filter(zip => zip !== zipToRemove));
+    const newZipCodes = selectedZipCodes.filter(zip => zip !== zipToRemove);
+    onZipCodesChange(newZipCodes);
+    if (newZipCodes.length === 0) {
+      onShowOnlyNearbyChange(false);
+    }
   };
 
   return (
@@ -39,7 +50,12 @@ export function ZipCodeCombobox({ selectedZipCodes, onZipCodesChange }: ZipCodeC
           onChange={handleInputChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder="Filter by ZIP code..."
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && validateZip(inputValue)) {
+              handleAddZip();
+            }
+          }}
+          placeholder="Enter ZIP code..."
           className="w-full rounded-lg border border-input bg-white py-2 pl-3 pr-3 text-sm shadow-sm"
         />
         {(isFocused || inputValue.length > 0) && (
@@ -48,7 +64,7 @@ export function ZipCodeCombobox({ selectedZipCodes, onZipCodesChange }: ZipCodeC
             disabled={!validateZip(inputValue) || selectedZipCodes.includes(inputValue)}
             size="sm"
           >
-            Add Filter
+            Add
           </Button>
         )}
       </div>
@@ -67,6 +83,14 @@ export function ZipCodeCombobox({ selectedZipCodes, onZipCodesChange }: ZipCodeC
               <X className="h-3 w-3" />
             </Button>
           ))}
+          <Button
+            variant={showOnlyNearby ? "default" : "outline"}
+            size="sm"
+            onClick={() => onShowOnlyNearbyChange(!showOnlyNearby)}
+            className="ml-2"
+          >
+            {showOnlyNearby ? 'Showing Only Nearby' : 'Show Only Nearby'}
+          </Button>
         </div>
       )}
     </div>

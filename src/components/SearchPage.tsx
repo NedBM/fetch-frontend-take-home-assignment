@@ -113,6 +113,7 @@ const ClientSearchPage = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
   const [selectedZipCodes, setSelectedZipCodes] = useState<string[]>([]);
+  const [showOnlyNearby, setShowOnlyNearby] = useState(false);
 
   // Fetch breeds for the combobox
   const { data: breeds = [] } = useQuery({
@@ -132,12 +133,12 @@ const ClientSearchPage = () => {
     isFetching: isFetchingSearch,
     error: searchError,
   } = useQuery<SearchResult>({
-    queryKey: ['dogIds', page, selectedBreeds, selectedAges, selectedZipCodes, sortOrder],
+    queryKey: ['dogIds', page, selectedBreeds, selectedAges, showOnlyNearby ? selectedZipCodes : [], sortOrder],
     queryFn: () => fetchDogIds({ 
       page, 
       breeds: selectedBreeds, 
       ages: selectedAges,
-      zipCodes: selectedZipCodes,
+      zipCodes: showOnlyNearby ? selectedZipCodes : [],
       sortOrder: sortOrder 
     }),
     placeholderData: (previousData) => previousData,
@@ -273,10 +274,11 @@ const ClientSearchPage = () => {
             onBreedsChange={setSelectedBreeds}
           />
           <ZipCodeCombobox 
-  // zipCodes={zipCodes}
-  selectedZipCodes={selectedZipCodes}
-  onZipCodesChange={setSelectedZipCodes}
-/>
+            selectedZipCodes={selectedZipCodes}
+            onZipCodesChange={setSelectedZipCodes}
+            showOnlyNearby={showOnlyNearby}
+            onShowOnlyNearbyChange={setShowOnlyNearby}
+          />
         <AgeCombobox 
         // ages={ages}
   selectedAges={selectedAges}
