@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useFavorites } from '../../hooks/useFavorites';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Confetti from 'react-confetti';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,12 +27,11 @@ import { AgeBadge } from './AgeBadge';
 import { Dog, Location } from '../../types/api';
 
 const LikedDogsPage = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const router = useRouter();
   const [dogToUnlike, setDogToUnlike] = useState<string | null>(null);
   const { favorites, setFavorites } = useFavorites();
   const [isGeneratingMatch, setIsGeneratingMatch] = useState(false);
   const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Fetch dogs that are in favorites
   const { data: likedDogs = [], isLoading } = useQuery<Dog[]>({
@@ -107,6 +107,9 @@ const LikedDogsPage = () => {
       if (!matchedDogResponse.ok) throw new Error('Failed to fetch matched dog');
       const [fetchedMatchedDog] = await matchedDogResponse.json();
       setMatchedDog(fetchedMatchedDog);
+      setShowConfetti(true);
+      // Hide confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000);
     } catch (error) {
       console.error('Error generating match:', error);
     } finally {
@@ -141,7 +144,7 @@ const LikedDogsPage = () => {
             <Button 
               onClick={generateMatch} 
               disabled={isGeneratingMatch}
-              className="bg-primary"
+              className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white"
             >
               {isGeneratingMatch ? 'Generating Match...' : 'Generate Match'}
             </Button>
@@ -225,6 +228,16 @@ const LikedDogsPage = () => {
 
         {/* Match Result Modal */}
         <AlertDialog open={!!matchedDog} onOpenChange={() => setMatchedDog(null)}>
+        <div className='z-[9999]'>
+        {showConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={400}
+        />
+      )}
+      </div>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Your Perfect Match!</AlertDialogTitle>

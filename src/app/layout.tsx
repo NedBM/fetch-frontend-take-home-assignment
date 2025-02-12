@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
-import Providers from "../app/providers/providers"
+import Providers from "../app/providers/providers";
+import { ThemeProvider } from "@/components/theme-provider";
+import Navbar from '@/components/Navbar';
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -20,10 +22,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${bricolage.variable} antialiased`}
-      >
-      <Providers>{children}</Providers>
+      <body className={`${bricolage.variable} antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>
+            <Navbar />
+            {children}
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

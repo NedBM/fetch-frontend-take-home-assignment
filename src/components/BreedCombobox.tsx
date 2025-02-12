@@ -1,4 +1,3 @@
-// src/components/BreedCombobox.tsx
 'use client';
 
 import { Combobox } from '@headlessui/react';
@@ -38,20 +37,20 @@ export function BreedCombobox({ breeds, selectedBreeds, onBreedsChange }: BreedC
     <div className="flex flex-col gap-2 w-full max-w-[350px]">
       <Combobox value={""} onChange={handleSelect} nullable>
         <div className="relative">
-          <div className="relative w-full cursor-default overflow-hidden rounded-lg border border-input bg-transparent text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-2">
+          <div className="relative w-full cursor-default overflow-hidden rounded-lg border border-input bg-background dark:bg-gray-800 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-2">
             <Combobox.Input
-              className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-1 focus:ring-neutral-950 rounded-md"
+              className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-neutral-950 dark:focus:ring-neutral-200 rounded-md bg-transparent placeholder:text-gray-500 dark:placeholder:text-gray-400"
               onChange={(event) => setQuery(event.target.value)}
               displayValue={() => query}
               placeholder={selectedBreeds.length ? "Add more breeds..." : "Filter breeds..."}
             />
             <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-              <ChevronsUpDown className="h-4 w-4 opacity-50" />
+              <ChevronsUpDown className="h-4 w-4 opacity-50 dark:text-gray-400" />
             </Combobox.Button>
           </div>
-          <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+          <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black dark:ring-gray-700 ring-opacity-5 focus:outline-none sm:text-sm">
             {filteredBreeds.length === 0 && query !== '' ? (
-              <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+              <div className="relative cursor-default select-none py-2 px-4 text-gray-700 dark:text-gray-300">
                 No breeds found.
               </div>
             ) : (
@@ -62,7 +61,7 @@ export function BreedCombobox({ breeds, selectedBreeds, onBreedsChange }: BreedC
                   className={({ active }) =>
                     cn(
                       "relative cursor-default select-none py-2 pl-10 pr-4",
-                      active ? "bg-blue-600 text-white" : "text-gray-900"
+                      active ? "bg-blue-600 text-white" : "text-gray-900 dark:text-gray-100"
                     )
                   }
                 >
@@ -78,7 +77,7 @@ export function BreedCombobox({ breeds, selectedBreeds, onBreedsChange }: BreedC
                         <span
                           className={cn(
                             "absolute inset-y-0 left-0 flex items-center pl-3",
-                            active ? "text-white" : "text-blue-600"
+                            active ? "text-white" : "text-blue-600 dark:text-blue-400"
                           )}
                         >
                           <Check className="h-4 w-4" />
@@ -100,7 +99,7 @@ export function BreedCombobox({ breeds, selectedBreeds, onBreedsChange }: BreedC
               key={breed}
               variant="secondary"
               size="sm"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
               onClick={() => removeBreed(breed)}
             >
               {breed}

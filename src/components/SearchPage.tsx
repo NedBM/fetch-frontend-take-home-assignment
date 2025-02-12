@@ -194,16 +194,16 @@ const ClientSearchPage = () => {
 
   if (searchError) {
     return (
-      <div className="flex justify-center items-center h-96">
+      <div className="flex justify-center items-center h-96 ">
         <p className="text-red-500">Error loading dogs. Please try again.</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-start gap-4">
+    <div className="container p-4 mx-auto dark:bg-gray-800">
+      <div className="flex flex-col gap-4 dark:bg-gray-800">
+        <div className="flex items-start gap-4 dark:bg-gray-800">
           <BreedCombobox 
             breeds={breeds}
             selectedBreeds={selectedBreeds}
@@ -246,11 +246,11 @@ const ClientSearchPage = () => {
             Array(DOGS_PER_PAGE).fill(0).map((_, i) => (
               <Card key={i} className="flex flex-col animate-pulse">
                 <CardHeader>
-                  <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
                 </CardHeader>
                 <CardContent>
-                  <div className="w-full h-48 bg-gray-200 rounded-md"></div>
+                  <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
                 </CardContent>
               </Card>
             ))
@@ -260,7 +260,7 @@ const ClientSearchPage = () => {
                 <CardHeader className="pb-2">
                   <CardTitle>{dog.name}</CardTitle>
                   <div className="flex items-center gap-2">
-                    <DogIcon className="w-4 h-4 text-gray-500" />
+                    <DogIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <CardDescription>{dog.breed}</CardDescription>
                   </div>
                 </CardHeader>
@@ -269,7 +269,7 @@ const ClientSearchPage = () => {
                     <img 
                       src={dog.img} 
                       alt={dog.name}
-                      className="h-52 rounded-md"
+                      className="h-52 rounded-md object-cover"
                     />
                   </div>
                   <div className="mt-4 flex justify-between items-center">
@@ -277,21 +277,21 @@ const ClientSearchPage = () => {
                       <div className="flex items-center gap-1">
                         <AgeBadge age={dog.age} />
                         {isNearby(dog.zip_code) && (
-                          <Badge className="bg-green-500">Nearby</Badge>
+                          <Badge className="bg-green-500 dark:bg-green-600">Nearby</Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4 text-gray-500" />
+                        <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         {(() => {
-                          if (!dog?.zip_code) return <p className="text-sm text-gray-600">Location unavailable</p>;
+                          if (!dog?.zip_code) return <p className="text-sm text-gray-600 dark:text-gray-400">Location unavailable</p>;
                           
                           const location = locations?.find(l => l?.zip_code === dog.zip_code);
                           return location ? (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               {location.city}, {location.state} ({dog.zip_code})
                             </p>
                           ) : (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               ZIP Code: {dog.zip_code}
                             </p>
                           );
@@ -302,6 +302,7 @@ const ClientSearchPage = () => {
                       variant={favorites.has(dog.id) ? "destructive" : "secondary"}
                       size="icon"
                       onClick={() => toggleFavorite(dog.id)}
+                      className={favorites.has(dog.id) ? "hover:bg-red-600 dark:hover:bg-red-700" : ""}
                     >
                       <Heart className={favorites.has(dog.id) ? "fill-current" : ""} />
                     </Button>
@@ -337,7 +338,7 @@ const ClientSearchPage = () => {
               
               return pageNumbers.map((pageNum, index) => {
                 if (pageNum === '...') {
-                  return <span key={`ellipsis-${index}`} className="px-2">...</span>;
+                  return <span key={`ellipsis-${index}`} className="px-2 text-gray-600 dark:text-gray-400">...</span>;
                 }
                 return (
                   <Button

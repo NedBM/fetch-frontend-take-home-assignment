@@ -1,9 +1,20 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, createContext, useContext, useEffect } from 'react';
+
+// User context types and creation
+interface UserData {
+  name?: string;
+  email?: string;
+}
+
+const UserContext = createContext<UserData>({});
+
+export const useUserData = () => useContext(UserContext);
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+  // Query client initialization
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -16,7 +27,21 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
+  // User data state
+  const [userData, setUserData] = useState<UserData>({});
+
+  useEffect(() => {
+    const storedData = localStorage.getItem('userData');
+    if (storedData) {
+      setUserData(JSON.parse(storedData));
+    }
+  }, []);
+
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <UserContext.Provider value={userData}>
+        {children}
+      </UserContext.Provider>
+    </QueryClientProvider>
   );
 }
