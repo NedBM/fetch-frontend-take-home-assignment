@@ -42,6 +42,9 @@ export default function SearchLayout({
             <Dog className="w-8 h-8 text-gray-900" />
             <h1 className="text-3xl font-bold text-gray-900">Fetch Finder</h1>
           </div>
+          <div>
+            <h3>Helping Find Your Perfect Pet Match Today!</h3>
+          </div>
         </div>
       </header>
       <main>

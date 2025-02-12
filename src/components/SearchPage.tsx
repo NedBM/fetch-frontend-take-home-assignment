@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -24,6 +25,7 @@ import { Dog, Location } from '../../types/api';
 import { AgeCombobox } from './AgeCombobox';
 import { ZipCodeCombobox } from './ZipCombobox';
 import { Badge } from './ui/badge';
+import { useFavorites } from '../../hooks/useFavorites';
 
 interface SearchResult {
   resultIds: string[];
@@ -33,42 +35,42 @@ interface SearchResult {
 }
 
 interface FetchDogIdsParams {
-    page?: number;
-    breeds?: string[];
-    ages?: string[];
-    zipCodes?: string[];
-    sortOrder?: 'asc' | 'desc';
-  }
+  page?: number;
+  breeds?: string[];
+  ages?: string[];
+  zipCodes?: string[];
+  sortOrder?: 'asc' | 'desc';
+}
 
 const DOGS_PER_PAGE = 12;
 
 const fetchDogIds = async ({ page = 0, breeds = [], ages = [], zipCodes = [], sortOrder = 'asc' }: FetchDogIdsParams): Promise<SearchResult> => {
-    const searchParams = new URLSearchParams();
-    if (breeds.length) {
-      breeds.forEach(breed => searchParams.append('breeds', breed));
-    }
-    if (zipCodes.length) {
-      zipCodes.forEach(zip => searchParams.append('zipCodes', zip));
-    }
-    if (ages.length) {
-      const minAge = Math.min(...ages.map(Number));
-      const maxAge = Math.max(...ages.map(Number));
-      searchParams.append('ageMin', minAge.toString());
-      searchParams.append('ageMax', maxAge.toString());
-    }
-    searchParams.append('sort', `breed:${sortOrder}`);
-    searchParams.append('size', DOGS_PER_PAGE.toString());
-    if (page > 0) {
-      searchParams.append('from', (page * DOGS_PER_PAGE).toString());
-    }
-  
-    const response = await fetch(
-      `https://frontend-take-home-service.fetch.com/dogs/search?${searchParams}`,
-      { credentials: 'include' }
-    );
-    if (!response.ok) throw new Error('Search failed');
-    return response.json();
-  };
+  const searchParams = new URLSearchParams();
+  if (breeds.length) {
+    breeds.forEach(breed => searchParams.append('breeds', breed));
+  }
+  if (zipCodes.length) {
+    zipCodes.forEach(zip => searchParams.append('zipCodes', zip));
+  }
+  if (ages.length) {
+    const minAge = Math.min(...ages.map(Number));
+    const maxAge = Math.max(...ages.map(Number));
+    searchParams.append('ageMin', minAge.toString());
+    searchParams.append('ageMax', maxAge.toString());
+  }
+  searchParams.append('sort', `breed:${sortOrder}`);
+  searchParams.append('size', DOGS_PER_PAGE.toString());
+  if (page > 0) {
+    searchParams.append('from', (page * DOGS_PER_PAGE).toString());
+  }
+
+  const response = await fetch(
+    `https://frontend-take-home-service.fetch.com/dogs/search?${searchParams}`,
+    { credentials: 'include' }
+  );
+  if (!response.ok) throw new Error('Search failed');
+  return response.json();
+};
 
 const fetchDogs = async (dogIds: string[]): Promise<Dog[]> => {
   if (!dogIds.length) return [];
@@ -90,43 +92,21 @@ const fetchBreeds = async (): Promise<string[]> => {
   return response.json();
 };
 
-// const fetchZipCodes = async (): Promise<string[]> => {
-//   const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/zipCodes', {
-//     credentials: 'include'
-//   });
-//   if (!response.ok) throw new Error('Failed to fetch ZIP codes');
-//   return response.json();
-// };
-
-// const fetchAges = async (): Promise<string[]> => {
-//   const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/ages', {
-//     credentials: 'include'
-//   });
-//   if (!response.ok) throw new Error('Failed to fetch ages');
-//   return response.json();
-// };
-
 const ClientSearchPage = () => {
+  const router = useRouter();
   const [page, setPage] = useState(0);
   const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
   const [selectedZipCodes, setSelectedZipCodes] = useState<string[]>([]);
   const [showOnlyNearby, setShowOnlyNearby] = useState(false);
+  const { favorites, toggleFavorite } = useFavorites();
 
-  // Fetch breeds for the combobox
   const { data: breeds = [] } = useQuery({
     queryKey: ['breeds'],
     queryFn: fetchBreeds,
   });
 
-//   const { data: ages = [] } = useQuery({
-//     queryKey: ['ages'],
-//     queryFn: fetchAges,
-//   });
-
-  // Fetch dog IDs with pagination
   const {
     data: searchResult,
     isLoading: isLoadingSearch,
@@ -134,17 +114,16 @@ const ClientSearchPage = () => {
     error: searchError,
   } = useQuery<SearchResult>({
     queryKey: ['dogIds', page, selectedBreeds, selectedAges, showOnlyNearby ? selectedZipCodes : [], sortOrder],
-    queryFn: () => fetchDogIds({ 
-      page, 
-      breeds: selectedBreeds, 
+    queryFn: () => fetchDogIds({
+      page,
+      breeds: selectedBreeds,
       ages: selectedAges,
       zipCodes: showOnlyNearby ? selectedZipCodes : [],
-      sortOrder: sortOrder 
+      sortOrder: sortOrder
     }),
     placeholderData: (previousData) => previousData,
   });
 
-  // Fetch actual dog data once we have IDs
   const {
     data: dogs = [],
     isLoading: isLoadingDogs,
@@ -154,53 +133,10 @@ const ClientSearchPage = () => {
     enabled: !!searchResult?.resultIds?.length,
   });
 
-  const toggleFavorite = (dogId: string) => {
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(dogId)) {
-        newFavorites.delete(dogId);
-      } else {
-        newFavorites.add(dogId);
-      }
-      return newFavorites;
-    });
-  };
-
-  const generateMatch = async () => {
-    if (favorites.size === 0) return;
-    
-    try {
-      const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/match', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(Array.from(favorites))
-      });
-
-      if (!response.ok) throw new Error('Match generation failed');
-      const { match } = await response.json();
-      
-      const matchedDogResponse = await fetch('https://frontend-take-home-service.fetch.com/dogs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify([match])
-      });
-
-      if (!matchedDogResponse.ok) throw new Error('Failed to fetch matched dog');
-      const [matchedDog] = await matchedDogResponse.json();
-      console.log('Matched dog:', matchedDog);
-    } catch (error) {
-      console.error('Error generating match:', error);
-    }
-  };
-
-
   const { data: locations = [] } = useQuery<Location[]>({
     queryKey: ['locations', dogs],
     queryFn: async () => {
       try {
-        // Get unique zip codes from current dogs, filtering out any null/undefined values
         const zipCodes = [...new Set(dogs
           .map(dog => dog?.zip_code)
           .filter(Boolean)
@@ -233,7 +169,7 @@ const ClientSearchPage = () => {
     
     if (!loc1 || !loc2) return Infinity;
 
-    const R = 3958.8; // Earth's radius in miles
+    const R = 3958.8;
     const lat1 = loc1.latitude * Math.PI/180;
     const lat2 = loc2.latitude * Math.PI/180;
     const dLat = (loc2.latitude - loc1.latitude) * Math.PI/180;
@@ -249,7 +185,7 @@ const ClientSearchPage = () => {
 
   const isNearby = (dogZip: string) => {
     if (!selectedZipCodes.length) return false;
-    return selectedZipCodes.some(zip => calculateDistance(zip, dogZip) <= 50); // 50 mile radius
+    return selectedZipCodes.some(zip => calculateDistance(zip, dogZip) <= 50);
   };
 
   const isLoading = isLoadingSearch || isLoadingDogs;
@@ -279,11 +215,10 @@ const ClientSearchPage = () => {
             showOnlyNearby={showOnlyNearby}
             onShowOnlyNearbyChange={setShowOnlyNearby}
           />
-        <AgeCombobox 
-        // ages={ages}
-  selectedAges={selectedAges}
-  onAgesChange={setSelectedAges}
-/>
+          <AgeCombobox 
+            selectedAges={selectedAges}
+            onAgesChange={setSelectedAges}
+          />
           <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Sort order" />
@@ -295,79 +230,73 @@ const ClientSearchPage = () => {
           </Select>
 
           {favorites.size > 0 && (
-            <Button onClick={generateMatch} variant="secondary">
-              Generate Match ({favorites.size})
+            <Button 
+              onClick={() => router.push('/liked-dogs')} 
+              variant="secondary"
+              className="flex items-center gap-2"
+            >
+              <Heart className="w-4 h-4" />
+              View Liked Dogs ({favorites.size})
             </Button>
           )}
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {isLoading ? (
-  Array(DOGS_PER_PAGE).fill(0).map((_, i) => (
-    <Card key={i} className="flex flex-col animate-pulse">
-      <CardHeader>
-        <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-      </CardHeader>
-      <CardContent>
-        <div className="w-full h-48 bg-gray-200 rounded-md"></div>
-      </CardContent>
-    </Card>
-  ))
-) : (
-  dogs.map(dog => (
-    <Card key={dog.id} className="flex flex-col">
-      <CardHeader className='pb-2'>
-        <CardTitle>{dog.name}</CardTitle>
-        <div className="flex items-center gap-2">
-          <DogIcon className="w-4 h-4 text-gray-500" />
-          <CardDescription>{dog.breed}</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className='flex justify-center'>
-          <img 
-            src={dog.img} 
-            alt={dog.name}
-            className="h-52 rounded-md"
-          />
-        </div>
-        <div className="mt-4 flex justify-between items-center">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1">
-              <AgeBadge age={dog.age} />
-              {isNearby(dog.zip_code) && (
-                <Badge className="bg-green-500">Nearby</Badge>
-              )}
-            </div>
-            <div className="flex flex-col gap-1">
-              {(() => {
-                if (!dog?.zip_code) {
-                  return (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4 text-gray-500" />
-                      <p className="text-sm text-gray-600">
-                        Location unavailable
-                      </p>
-                    </div>
-                  );
-                }
-
-    // Then check if locations exists and find the matching location
-    const location = locations?.find(l => l?.zip_code === dog.zip_code);
-    
-    return location ? (
-      <p className="text-sm text-gray-600">
-        {location.city}, {location.state} ({dog.zip_code})
-      </p>
-    ) : (
-      <p className="text-sm text-gray-600">
-        ZIP Code: {dog.zip_code}
-      </p>
-    );
-  })()}
-</div>
-
-                      <p className="text-sm">ZIP Code: {dog.zip_code}</p>
+          {isLoading ? (
+            Array(DOGS_PER_PAGE).fill(0).map((_, i) => (
+              <Card key={i} className="flex flex-col animate-pulse">
+                <CardHeader>
+                  <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="w-full h-48 bg-gray-200 rounded-md"></div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            dogs.map(dog => (
+              <Card key={dog.id} className="flex flex-col">
+                <CardHeader className="pb-2">
+                  <CardTitle>{dog.name}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <DogIcon className="w-4 h-4 text-gray-500" />
+                    <CardDescription>{dog.breed}</CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-center">
+                    <img 
+                      src={dog.img} 
+                      alt={dog.name}
+                      className="h-52 rounded-md"
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-between items-center">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <AgeBadge age={dog.age} />
+                        {isNearby(dog.zip_code) && (
+                          <Badge className="bg-green-500">Nearby</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4 text-gray-500" />
+                        {(() => {
+                          if (!dog?.zip_code) return <p className="text-sm text-gray-600">Location unavailable</p>;
+                          
+                          const location = locations?.find(l => l?.zip_code === dog.zip_code);
+                          return location ? (
+                            <p className="text-sm text-gray-600">
+                              {location.city}, {location.state} ({dog.zip_code})
+                            </p>
+                          ) : (
+                            <p className="text-sm text-gray-600">
+                              ZIP Code: {dog.zip_code}
+                            </p>
+                          );
+                        })()}
+                      </div>
                     </div>
                     <Button
                       variant={favorites.has(dog.id) ? "destructive" : "secondary"}
@@ -398,15 +327,12 @@ const ClientSearchPage = () => {
               const totalPages = Math.ceil((searchResult?.total || 0) / DOGS_PER_PAGE);
               const pageNumbers: (number | string)[] = [];
               
-              // Always show first page
               if (page > 2) pageNumbers.push(0, '...');
               
-              // Show current page and surrounding pages
               for (let i = Math.max(0, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
                 pageNumbers.push(i);
               }
               
-              // Always show last page
               if (page < totalPages - 3) pageNumbers.push('...', totalPages - 1);
               
               return pageNumbers.map((pageNum, index) => {
