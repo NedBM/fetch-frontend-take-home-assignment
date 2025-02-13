@@ -203,24 +203,42 @@ const ClientSearchPage = () => {
   return (
     <div className="container p-4 mx-auto dark:bg-gray-800">
       <div className="flex flex-col gap-4 dark:bg-gray-800">
-        <div className="flex items-start gap-4 dark:bg-gray-800">
+        <div className="w-full p-4 space-y-4 rounded-lg bg-background dark:bg-gray-800">
+      <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-start">
+        {/* Breed Filter - Full width on mobile */}
+        <div className="w-full md:w-auto md:flex-1 min-w-[200px]">
           <BreedCombobox 
             breeds={breeds}
             selectedBreeds={selectedBreeds}
             onBreedsChange={setSelectedBreeds}
           />
+        </div>
+
+        {/* ZIP Code Filter - Full width on mobile */}
+        <div className="w-full md:w-auto md:flex-1 min-w-[200px]">
           <ZipCodeCombobox 
             selectedZipCodes={selectedZipCodes}
             onZipCodesChange={setSelectedZipCodes}
             showOnlyNearby={showOnlyNearby}
             onShowOnlyNearbyChange={setShowOnlyNearby}
           />
+        </div>
+
+        {/* Age Filter - Full width on mobile */}
+        <div className="w-full md:w-auto md:flex-1 min-w-[200px]">
           <AgeCombobox 
             selectedAges={selectedAges}
             onAgesChange={setSelectedAges}
           />
-          <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
-            <SelectTrigger className="w-[180px]">
+        </div>
+
+        {/* Sort Order - Full width on mobile */}
+        <div className="w-full md:w-auto">
+          <Select 
+            value={sortOrder} 
+            onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}
+          >
+            <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Sort order" />
             </SelectTrigger>
             <SelectContent>
@@ -228,18 +246,23 @@ const ClientSearchPage = () => {
               <SelectItem value="desc">Descending</SelectItem>
             </SelectContent>
           </Select>
+        </div>
 
-          {favorites.size > 0 && (
+        {/* Liked Dogs Button - Full width on mobile */}
+        {favorites.size > 0 && (
+          <div className="w-full md:w-auto">
             <Button 
               onClick={() => router.push('/liked-dogs')} 
               variant="secondary"
-              className="flex items-center gap-2"
+              className="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white border-0"
             >
               <Heart className="w-4 h-4" />
               View Liked Dogs ({favorites.size})
             </Button>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
+    </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
