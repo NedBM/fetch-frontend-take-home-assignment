@@ -20,22 +20,34 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 5 * 1000, // 5 seconds
+            staleTime: 5 * 1000,
             refetchOnWindowFocus: false,
           },
         },
       })
   );
 
-  // User data state
+  // User data state with hydration handling
   const [userData, setUserData] = useState<UserData>({});
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    const storedData = localStorage.getItem('userData');
-    if (storedData) {
-      setUserData(JSON.parse(storedData));
+    // Handle user data hydration
+    try {
+      const storedData = localStorage.getItem('userData');
+      if (storedData) {
+        setUserData(JSON.parse(storedData));
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
     }
+    setIsHydrated(true);
   }, []);
+
+  // Prevent flash of incorrect content during hydration
+  if (!isHydrated) {
+    return null; // or return a loading skeleton
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
