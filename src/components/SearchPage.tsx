@@ -26,6 +26,7 @@ import { AgeCombobox } from './AgeCombobox';
 import { ZipCodeCombobox } from './ZipCombobox';
 import { Badge } from './ui/badge';
 import { useFavorites } from '../../hooks/useFavorites';
+import { checkIfNearby } from '../app/utils/distance';
 
 interface SearchResult {
   resultIds: string[];
@@ -162,32 +163,7 @@ const ClientSearchPage = () => {
     },
     enabled: dogs.length > 0 && dogs.some(dog => Boolean(dog?.zip_code))
   });
-
-  const calculateDistance = (zip1: string, zip2: string) => {
-    const loc1 = locations.find(l => l.zip_code === zip1);
-    const loc2 = locations.find(l => l.zip_code === zip2);
-    
-    if (!loc1 || !loc2) return Infinity;
-
-    const R = 3958.8;
-    const lat1 = loc1.latitude * Math.PI/180;
-    const lat2 = loc2.latitude * Math.PI/180;
-    const dLat = (loc2.latitude - loc1.latitude) * Math.PI/180;
-    const dLon = (loc2.longitude - loc1.longitude) * Math.PI/180;
-
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1) * Math.cos(lat2) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
-  const isNearby = (dogZip: string) => {
-    if (!selectedZipCodes.length) return false;
-    return selectedZipCodes.some(zip => calculateDistance(zip, dogZip) <= 50);
-  };
-
+  
   const isLoading = isLoadingSearch || isLoadingDogs;
   const hasNextPage = searchResult?.resultIds?.length === DOGS_PER_PAGE;
   const hasPrevPage = page > 0;
@@ -199,6 +175,11 @@ const ClientSearchPage = () => {
       </div>
     );
   }
+
+  const checkDogNearby = (dogZip: string): boolean => {
+    if (!selectedZipCodes.length || !locations?.length) return false;
+    return checkIfNearby(dogZip, selectedZipCodes, locations);
+  };
 
   return (
     <div className="container p-4 mx-auto dark:bg-gray-800">
@@ -297,12 +278,12 @@ const ClientSearchPage = () => {
                   </div>
                   <div className="mt-4 flex justify-between items-center">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-1">
-                        <AgeBadge age={dog.age} />
-                        {isNearby(dog.zip_code) && (
-                          <Badge className="bg-green-500 dark:bg-green-600">Nearby</Badge>
-                        )}
-                      </div>
+                    <div className="flex items-center gap-1">
+  <AgeBadge age={dog.age} />
+  {checkDogNearby(dog.zip_code) && (
+    <Badge className="bg-green-500 dark:bg-green-600">Nearby</Badge>
+  )}
+</div>
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         {(() => {
