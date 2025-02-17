@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useFavorites } from '../../hooks/useFavorites';
 // import { useRouter } from 'next/navigation';
+
 import Link from 'next/link';
 import Confetti from 'react-confetti';
 import {

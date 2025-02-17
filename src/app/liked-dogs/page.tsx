@@ -1,14 +1,14 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import LikedDogsPage from '@/components/LikedDogs';
 
 export default function Page() {
-  const router = useRouter();
+  // const router = useRouter();
 
   return (
     <LikedDogsPage 
-      onBack={() => router.push('/')}
+      // onBack={() => router.push('/')}
     />
   );
 }
