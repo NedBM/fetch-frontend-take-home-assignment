@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fetch Frontend Take-Home Assignment - Fetch Finder
+
+A Next.js application that helps users find shelter dogs by searching through a database, with features for filtering, favoriting, and matching with dogs.
+
+## Live Demo
+
+https://fetch-frontend-take-home-assignment-beryl.vercel.app/
+
+## Features
+
+- **Authentication**
+  - Email and name-based login
+  - Session duration: 1 hour
+  - Automatic session expiry handling
+
+- **Dog Search & Filtering**
+  - Filter by breed, age, and ZIP code
+  - Sort breeds in ascending or descending order
+  - Pagination for search results
+  - Comprehensive display of dog information
+
+- **Favorites & Matching**
+  - Add/remove dogs to favorites
+  - View all favorited dogs
+  - Generate matches based on favorites
+
+## Tech Stack
+
+- **Framework**: Next.js 15
+- **Language**: TypeScript
+- **UI Libraries**: 
+  - shadcn/ui
+  - Headless UI
+- **State Management**: TanStack Query (React Query)
+- **Styling**: 
+  - Tailwind CSS
+- **Icons**: Lucide React
+- **Animations**: Motion
+- **Theme**: next-themes
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
+```bash
+gh repo clone NedBM/fetch-frontend-take-home-assignment
+cd fetch-frontend-take-home-assignment
+```
 
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Start the development server:
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage Guide
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Login
+1. On the homepage, you'll be prompted to enter:
+   - Your name
+   - Email address
+2. Login session lasts for 1 hour
 
-## Learn More
+### Searching Dogs
+- Use the filter panel to refine results by:
+  - Breed
+  - Age range
+  - ZIP code
+- Sort breeds alphabetically (ascending/descending)
+- Browse through paginated results
 
-To learn more about Next.js, take a look at the following resources:
+### Managing Favorites
+1. Click the heart icon on any dog card to add/remove from favorites
+2. Access your favorites through the "View Likes" button
+3. Generate a match from your favorited dogs
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-## Deploy on Vercel
+## Credits
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built as part of the Fetch Frontend Take-Home Assignment.
